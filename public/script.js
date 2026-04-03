@@ -11,102 +11,234 @@
  */
 
 // ═══════════════════════════════════════════════════════════════
-// API Service Layer
+// Local Storage DB helper
+// ═══════════════════════════════════════════════════════════════
+
+const DB_KEY = 'edutrack_db';
+
+function getDB() {
+  const defaultDB = { 
+    users: [{ id: 1, username: 'admin', password: 'password' }], 
+    students: [], 
+    attendance: [], 
+    marks: [], 
+    subjects: [] 
+  };
+  const raw = localStorage.getItem(DB_KEY);
+  if (!raw) {
+    localStorage.setItem(DB_KEY, JSON.stringify(defaultDB));
+    return defaultDB;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    return { ...defaultDB, ...parsed };
+  } catch (e) {
+    console.error('Failed to parse DB, resetting.');
+    localStorage.setItem(DB_KEY, JSON.stringify(defaultDB));
+    return defaultDB;
+  }
+}
+
+function saveDB(db) {
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+
+function getNextId(table) {
+  const db = getDB();
+  const items = db[table] || [];
+  if (items.length === 0) return 1;
+  const max = Math.max(...items.map(i => i.id || 0));
+  return max + 1;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// API Service Layer (Frontend Only)
 // ═══════════════════════════════════════════════════════════════
 
 const API = {
-  /**
-   * Core fetch wrapper with automatic JSON parsing and error handling.
-   */
-  async request(url, options = {}) {
-    try {
-      const res = await fetch(url, {
-        headers: { 'Content-Type': 'application/json', ...options.headers },
-        ...options
-      });
-      const data = await res.json();
-
-      // If unauthorized, redirect to login
-      if (res.status === 401) {
-        window.location.hash = '#/login';
-        return data;
-      }
-
-      return data;
-    } catch (err) {
-      console.error(`[API] ${url}:`, err);
-      return { success: false, message: 'Network error. Please try again.' };
-    }
-  },
-
   // Auth
-  login(username, password) {
-    return this.request('/api/auth/login', {
-      method: 'POST', body: JSON.stringify({ username, password })
-    });
+  async login(username, password) {
+    const db = getDB();
+    const user = db.users.find(u => u.username === username && u.password === password);
+    if (user) {
+      sessionStorage.setItem('loggedInUser', username);
+      return { success: true, data: { username } };
+    }
+    return { success: false, message: 'Invalid credentials.' };
   },
-  register(username, password) {
-    return this.request('/api/auth/register', {
-      method: 'POST', body: JSON.stringify({ username, password })
-    });
+  async register(username, password) {
+    const db = getDB();
+    if (db.users.find(u => u.username === username)) {
+      return { success: false, message: 'Username already exists.' };
+    }
+    const newUser = { id: getNextId('users'), username, password };
+    db.users.push(newUser);
+    saveDB(db);
+    return { success: true, data: newUser };
   },
-  logout() {
-    return this.request('/api/auth/logout', { method: 'POST' });
+  async logout() {
+    sessionStorage.removeItem('loggedInUser');
+    return { success: true };
   },
-  checkAuth() {
-    return this.request('/api/auth/check');
+  async checkAuth() {
+    const username = sessionStorage.getItem('loggedInUser');
+    if (username) {
+      return { success: true, data: { username } };
+    }
+    return { success: false, message: 'Not authenticated' };
   },
 
   // Students
-  getStudents() { return this.request('/api/students'); },
-  getStudent(id) { return this.request(`/api/students/${id}`); },
-  addStudent(data) {
-    return this.request('/api/students', { method: 'POST', body: JSON.stringify(data) });
+  async getStudents() {
+    return { success: true, data: getDB().students };
   },
-  updateStudent(id, data) {
-    return this.request(`/api/students/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  async getStudent(id) {
+    const student = getDB().students.find(s => s.id === parseInt(id));
+    if (student) return { success: true, data: student };
+    return { success: false, message: 'Student not found.' };
   },
-  deleteStudent(id) {
-    return this.request(`/api/students/${id}`, { method: 'DELETE' });
+  async addStudent(data) {
+    const db = getDB();
+    const newStudent = { id: getNextId('students'), ...data };
+    db.students.push(newStudent);
+    saveDB(db);
+    return { success: true, data: newStudent };
+  },
+  async updateStudent(id, data) {
+    const db = getDB();
+    const index = db.students.findIndex(s => s.id === parseInt(id));
+    if (index !== -1) {
+      db.students[index] = { ...db.students[index], ...data };
+      saveDB(db);
+      return { success: true, data: db.students[index] };
+    }
+    return { success: false, message: 'Student not found.' };
+  },
+  async deleteStudent(id) {
+    const db = getDB();
+    const initialLen = db.students.length;
+    db.students = db.students.filter(s => s.id !== parseInt(id));
+    if (db.students.length < initialLen) {
+      // Cascade delete
+      db.attendance = db.attendance.filter(a => parseInt(a.student_id) !== parseInt(id));
+      db.marks = db.marks.filter(m => parseInt(m.student_id) !== parseInt(id));
+      saveDB(db);
+      return { success: true };
+    }
+    return { success: false, message: 'Student not found.' };
   },
 
   // Attendance
-  getAttendance() { return this.request('/api/attendance'); },
-  getAttendanceById(id) { return this.request(`/api/attendance/${id}`); },
-  addAttendance(data) {
-    return this.request('/api/attendance', { method: 'POST', body: JSON.stringify(data) });
+  async getAttendance() {
+    return { success: true, data: getDB().attendance };
   },
-  updateAttendance(id, data) {
-    return this.request(`/api/attendance/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  async getAttendanceById(id) {
+    const record = getDB().attendance.find(a => a.id === parseInt(id));
+    if (record) return { success: true, data: record };
+    return { success: false, message: 'Record not found.' };
   },
-  deleteAttendance(id) {
-    return this.request(`/api/attendance/${id}`, { method: 'DELETE' });
+  async addAttendance(data) {
+    const db = getDB();
+    const newRecord = { id: getNextId('attendance'), ...data };
+    db.attendance.push(newRecord);
+    saveDB(db);
+    return { success: true, data: newRecord };
+  },
+  async updateAttendance(id, data) {
+    const db = getDB();
+    const index = db.attendance.findIndex(a => a.id === parseInt(id));
+    if (index !== -1) {
+      db.attendance[index] = { ...db.attendance[index], ...data };
+      saveDB(db);
+      return { success: true, data: db.attendance[index] };
+    }
+    return { success: false, message: 'Record not found.' };
+  },
+  async deleteAttendance(id) {
+    const db = getDB();
+    const initialLen = db.attendance.length;
+    db.attendance = db.attendance.filter(a => a.id !== parseInt(id));
+    if (db.attendance.length < initialLen) {
+      saveDB(db);
+      return { success: true };
+    }
+    return { success: false, message: 'Record not found.' };
   },
 
   // Marks
-  getMarks() { return this.request('/api/marks'); },
-  getMarksById(id) { return this.request(`/api/marks/${id}`); },
-  addMarks(data) {
-    return this.request('/api/marks', { method: 'POST', body: JSON.stringify(data) });
+  async getMarks() {
+    return { success: true, data: getDB().marks };
   },
-  updateMarks(id, data) {
-    return this.request(`/api/marks/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  async getMarksById(id) {
+    const record = getDB().marks.find(m => m.id === parseInt(id));
+    if (record) return { success: true, data: record };
+    return { success: false, message: 'Record not found.' };
   },
-  deleteMarks(id) {
-    return this.request(`/api/marks/${id}`, { method: 'DELETE' });
+  async addMarks(data) {
+    const db = getDB();
+    const newRecord = { id: getNextId('marks'), ...data };
+    db.marks.push(newRecord);
+    saveDB(db);
+    return { success: true, data: newRecord };
+  },
+  async updateMarks(id, data) {
+    const db = getDB();
+    const index = db.marks.findIndex(m => m.id === parseInt(id));
+    if (index !== -1) {
+      db.marks[index] = { ...db.marks[index], ...data };
+      saveDB(db);
+      return { success: true, data: db.marks[index] };
+    }
+    return { success: false, message: 'Record not found.' };
+  },
+  async deleteMarks(id) {
+    const db = getDB();
+    const initialLen = db.marks.length;
+    db.marks = db.marks.filter(m => m.id !== parseInt(id));
+    if (db.marks.length < initialLen) {
+      saveDB(db);
+      return { success: true };
+    }
+    return { success: false, message: 'Record not found.' };
   },
 
   // Subjects
-  getSubjects() { return this.request('/api/subjects'); },
-  getSubject(id) { return this.request(`/api/subjects/${id}`); },
-  addSubject(data) {
-    return this.request('/api/subjects', { method: 'POST', body: JSON.stringify(data) });
+  async getSubjects() {
+    return { success: true, data: getDB().subjects };
   },
-  updateSubject(id, data) {
-    return this.request(`/api/subjects/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  async getSubject(id) {
+    const subject = getDB().subjects.find(s => s.id === parseInt(id));
+    if (subject) return { success: true, data: subject };
+    return { success: false, message: 'Subject not found.' };
   },
-  deleteSubject(id) {
-    return this.request(`/api/subjects/${id}`, { method: 'DELETE' });
+  async addSubject(data) {
+    const db = getDB();
+    const newSubject = { id: getNextId('subjects'), ...data };
+    db.subjects.push(newSubject);
+    saveDB(db);
+    return { success: true, data: newSubject };
+  },
+  async updateSubject(id, data) {
+    const db = getDB();
+    const index = db.subjects.findIndex(s => s.id === parseInt(id));
+    if (index !== -1) {
+      db.subjects[index] = { ...db.subjects[index], ...data };
+      saveDB(db);
+      return { success: true, data: db.subjects[index] };
+    }
+    return { success: false, message: 'Subject not found.' };
+  },
+  async deleteSubject(id) {
+    const db = getDB();
+    const initialLen = db.subjects.length;
+    db.subjects = db.subjects.filter(s => s.id !== parseInt(id));
+    if (db.subjects.length < initialLen) {
+      // Cascade delete
+      db.marks = db.marks.filter(m => parseInt(m.subject_id) !== parseInt(id));
+      saveDB(db);
+      return { success: true };
+    }
+    return { success: false, message: 'Subject not found.' };
   }
 };
 
