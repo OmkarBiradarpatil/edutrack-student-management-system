@@ -1,91 +1,62 @@
-# Student Management System
+# 🎓 EduTrack Student Management System
 
-A fully functional **Student Management System** built using **PHP**, **MySQL**, **HTML**, **CSS**, and **Bootstrap**. This application provides a streamlined way to manage students, track their attendance, record marks, and handle subject assignments in an intuitive and user-friendly interface.
+A professional, fully functional Student Management System built with a **Node.js + Express** backend and a premium, vanilla JavaScript **SPA** (Single Page Application) frontend.
 
-## 🚀 Features
+## ✨ Features
+- **Dashboard Analytics**: Live trend indicators for total students, attendance, marks, and subjects.
+- **Student Tracking**: Add, edit, and safely manage student records and enrollment numbers.
+- **Attendance Management**: Mark and update specific instances of attendance natively.
+- **Marks Reporting**: Store subject grades utilizing automatic grade coloring schemas (A-D).
+- **Secure Authentication**: Express-session protected endpoints utilizing bcryptjs encryption.
+- **Theme Support**: Persistent Light/Dark mode toggling.
 
-- **Student Management**: Easily add, view, edit, and delete student records.
-- **Attendance Tracking**: Record and track attendance for each student.
-- **Marks Management**: Record and view marks for various subjects.
-- **Subject Management**: Manage subject list with options to add, view, edit, and delete subjects.
-- **Authentication**: Secure login system to ensure data privacy and control access.
-- **Responsive UI**: Sidebar navigation for easy page access, and a modern design.
+## 🛠️ Tech Stack
+- **Frontend**: HTML5, Vanilla JavaScript, Vanilla CSS.
+- **Backend**: Node.js, Express.js.
+- **Database**: Local JSON Storage Engine (with isolated thread-safe write logic).
+- **Security**: express-session, bcryptjs.
 
-## 🛠️ Technologies Used
+## 📁 Folder Structure
+```text
+/public         # SPA Frontend (HTML, CSS, JS)
+/server         # Backend (Express setup, APIs, Middleware)
+/data           # Database storage (db.json)
+.env.example    # Environment variables mock
+package.json    # Dependencies & project scripts
+```
 
-- **Frontend**: HTML, CSS, Bootstrap
-- **Backend**: PHP, MySQL
-- **Libraries**: Select2 (for searchable dropdowns)
-
-## 📸 Screenshots
-![Dashboard Screenshot](https://github.com/user-attachments/assets/1458f1a1-6da1-440c-8984-de26cd958a29)
----
-![View Student Screenshot](https://github.com/user-attachments/assets/a1f44e89-46e1-41a1-8c37-6731529617b1)
----
-![Add Student Screenshot](https://github.com/user-attachments/assets/5bc0e03a-4e81-4559-891e-7fb9722dcdd8)
-
-
-## 📂 Folder Structure
-
-- `index.php` - Main dashboard page.
-- `db.php` - Database connection file.
-- `add_student.php`, `view_student.php`, etc. - Feature-specific files.
-- `assets/` - Folder for CSS, JavaScript, and other assets.
-
-## 📝 Getting Started
-
-### Prerequisites
-
-- [XAMPP](https://www.apachefriends.org/index.html) or similar (for running PHP and MySQL).
-- Web browser to view the application.
-
-### Installation
-
-1. **Clone the repository**:
+## 🚀 Installation & Setup
+1. **Clone the repository:**
    ```bash
-   git clone https://github.com/sayan365/student-management-system.git
-   
-2. **Move the project to XAMPP's htdocs folder:**
+   git clone <your-repo-url>
+   cd student-management-system
+   ```
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+3. **Configure Environment:**
+   ```bash
+   cp .env.example .env
+   # Make sure to edit .env with your secrets
+   ```
+4. **Start the server:**
+   ```bash
+   npm start
+   ```
 
-    - Place the cloned `student-management-system` folder inside the `htdocs` directory of your XAMPP installation.
+## 🖥 Demo Instructions
+Once running, simply route to `http://localhost:3000` inside your browser. 
+If starting from an entirely fresh `data/db.json` database, you can automatically create your first administrator by registering locally!
 
-3. **Set up the database:**
+## ☁️ Deployment Notes
+Because this system safely utilizes a local `data/db.json` file to store relationships entirely locally, deploying it onto a stateless Serverless framework (like **Vercel**) is **not supported.**
+Vercel automatically wipes disks when waking functions up, which will erase your DB. 
 
-   - Open phpMyAdmin (usually accessible at [http://localhost/phpmyadmin](http://localhost/phpmyadmin)).
-   - Create a new database (e.g., `student_system`).
-   - Import the provided SQL file (`database.sql`) in the repository to set up the necessary tables.
+**Recommended Scaling:** If you want to scale this into production permanently, please deploy the backend to an always-on VM/Platform (like **Render** or Railway) or swap the current database wrapper located in `server/db.js` with a scalable cloud DB equivalent like **MongoDB Atlas** or Supabase!
 
-4. **Update database configurations:**
-
-   - In the `db.php` file, ensure the database credentials (username, password, and database name) match your local environment.
-
-### Running the Application
-1. Start XAMPP:
- - Open XAMPP and start Apache and MySQL services.
-
-3. Access the Application:
- - Go to http://localhost/student-management-system/ in your browser.
-
-3. Login:
- - Use your credentials to log in (configured in the database).
-
-### 🔄 Usage
-**Dashboard:** Access all main features from the main dashboard after logging in.
-**Manage Students:** Add, edit, view, or delete student information.
-**Track Attendance:** Record and view attendance details.
-**Manage Marks:** Add and view marks for each subject and student.
-**Manage Subjects:** Add, edit, view, or delete subject records.
-### 🔒 Authentication and Logout
-Authenticated access is required. Unauthorized users are redirected to the login page. Use the "Logout" button in the sidebar to end the session.
-
-### 🤝 Contributing
-Contributions are welcome! To contribute:
-- Fork the repository.
-- Create a branch with descriptive naming (e.g., feature/new-feature).
-- Make your changes and create a pull request.
-  
-### 📄 License
-This open-source project is available under the [MIT License](LICENSE).
----
-**Author**: Sayan  
-For any inquiries, feel free to contact me via GitHub or other platforms.
+## 💎 Credits
+Made with ❤️ by:
+- **Omkar Biradarpatil**
+- **Sagar NM**
+- **Prajwal Metre**

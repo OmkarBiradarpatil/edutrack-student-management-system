@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EduTrack - A modern student management system. Track students, attendance, marks, and subjects.">
+    <title>EduTrack — Student Management System</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+    <!-- App Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ═══ Toast Container ═══ -->
+    <div id="toast-container" aria-live="polite"></div>
+
+    <!-- ═══ App Shell ═══ -->
+    <div id="app">
+        <!-- Top Right Global Controls -->
+        <div class="top-nav-controls">
+            <div id="live-clock" class="live-clock"></div>
+            <button id="theme-toggle" class="theme-toggle btn-icon" title="Toggle Theme">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar (injected by JS when authenticated) -->
+        <nav id="sidebar" class="sidebar hidden"></nav>
+
+        <!-- Main Content Area -->
+        <main id="main-content" class="main-content"></main>
+    </div>
+
+    <!-- ═══ Confirm Modal ═══ -->
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <h3 id="confirm-title">Confirm Action</h3>
+            <p id="confirm-message">Are you sure?</p>
+            <div class="modal-actions">
+                <button id="confirm-cancel" class="btn btn-ghost">Cancel</button>
+                <button id="confirm-ok" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Script -->
+    <script src="script.js"></script>
+</body>
+</html>
