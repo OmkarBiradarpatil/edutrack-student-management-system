@@ -58,5 +58,4 @@ Vercel automatically wipes disks when waking functions up, which will erase your
 ## 💎 Credits
 Made with ❤️ by:
 - **Omkar Biradarpatil**
-- **Sagar NM**
-- **Prajwal Metre**
+
