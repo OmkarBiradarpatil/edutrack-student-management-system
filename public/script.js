@@ -58,30 +58,26 @@ function getNextId(table) {
 const API = {
   // Auth
   async login(username, password) {
-    const db = getDB();
-    const user = db.users.find(u => u.username === username && u.password === password);
-    if (user) {
-      sessionStorage.setItem('loggedInUser', username);
-      return { success: true, data: { username } };
+    if (!username || !password) {
+      return { success: false, message: 'Please enter username and password.' };
     }
-    return { success: false, message: 'Invalid credentials.' };
+    sessionStorage.setItem('user', username);
+    return { success: true, data: { username } };
   },
   async register(username, password) {
-    const db = getDB();
-    if (db.users.find(u => u.username === username)) {
-      return { success: false, message: 'Username already exists.' };
+    if (!username || !password) {
+      return { success: false, message: 'Please enter details.' };
     }
-    const newUser = { id: getNextId('users'), username, password };
-    db.users.push(newUser);
-    saveDB(db);
-    return { success: true, data: newUser };
+    // Dummy register: just log them in
+    sessionStorage.setItem('user', username);
+    return { success: true, data: { username } };
   },
   async logout() {
-    sessionStorage.removeItem('loggedInUser');
+    sessionStorage.removeItem('user');
     return { success: true };
   },
   async checkAuth() {
-    const username = sessionStorage.getItem('loggedInUser');
+    const username = sessionStorage.getItem('user');
     if (username) {
       return { success: true, data: { username } };
     }
@@ -617,8 +613,8 @@ function renderRegisterPage() {
     const res = await API.register(username, password);
 
     if (res.success) {
-      showToast('Account created! You can now sign in.', 'success');
-      navigate('#/login');
+      showToast('Account created! Logging you in...', 'success');
+      navigate('#/dashboard');
     } else {
       showToast(res.message || 'Registration failed.', 'error');
       btn.disabled = false;
